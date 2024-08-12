@@ -1,0 +1,78 @@
+--mutex--
+
+mutex는 #include<mutex>를 포함해야 사용할 수 있다.
+
+Mutual Exclusive (상호 배타적) 이라는 뜻이다.
+
+Lock, Unlock 기능을 사용하기 위해 필요하다.
+
+비행기 화장실 처럼 비어있을 때 들어가서 문을 잠궈버리면 본인이 사용할 수 있는 그런 개념이다.
+
+
+-- STL과 멀티쓰레드 --
+대부분의 STL을 멀티쓰레드에서 막 동시다발적으로 접근하면 크래시가 발생한다.
+
+왜냐면 STL이 동적으로 동작하기 때문이다.
+
+
+-- Lock, Unlock --
+mutex에서 이전에 다른 쓰레드에서 해당 부분을 실행중이면
+
+.lock() 부분에서 기다려주어야 하기 때문에 해당 부분에서 다른 쓰레드 들은 .unlock이 될 때까지 기다린다.
+
+단, 동시에 같은 부분에 접근한 쓰레드가 여러개일 때 어떤 쓰레드가 다음번에 들어갈지는 알 수 없다.
+
+Lock 를 남발하면 다른 모든 쓰레드들은 한 쓰레드가 그 구간을 사용할 때 
+다른 쓰레드들이 그 구간을 사용하려면 대기를 해야 하는 것이기 때문에 남발하지 않는것이 좋다.
+
+오히려 어떻게 Lock사용을 줄일 수 있을 지 고민해야한다.
+
+Lock를 사용할 때는 lock과 unlock을 짝지어 사용해야 한다.
+
+
+-- RAII 디자인패턴, LockGuard --
+RAII(Resource Acquisition Is Initialization)
+
+RAII 은 C++ 디자인 패턴들 중 하나로
+
+리소스 획득은 초기화다 라는 뜻입니다.
+
+이 디자인 패턴을 이용하는 LockGuard라는 함수를 만들어서 lock unlock를 관리해준다.
+
+template<typename T>
+class LockGuard
+{
+public:
+    LockGuard(T& m) : _mutex(m)
+    {
+        _mutex.lock();
+    }
+
+    ~LockGuard()
+    {
+        _mutex.unlock();
+    }
+
+private:
+    T& _mutex;
+};
+
+이런식으로 만들어 준다.
+
+이렇게 되면 어떤 함수에서 LockGuard를 사용할 때 그 함수를 탈출하는 타이밍에 소멸자가 불려서 삭제하는 것으로 관리할 수 있다.
+
+
+
+-- unique_lock --
+
+unique_lock 이라는 것이 있는데 이 유니크 락은 직접적으로 우리가 lock의 시점을 미루는 기능이 있다.
+물론 기존 lock_guard의 기능 또한 동일하게 사용할 수 있다.
+
+우리가 원하는 타이밍에 lock를 걸 수 있는 것이다.
+
+std::unique_lock<mutex> uniqueLock(m, std::defer_lock);
+
+이렇게 내가 사용하려는 mutex변수 m 뒤에 std::defer_lock을 적어주면 이후에 lock 시점은 내가 직접 정할 수 있다.
+
+
+
