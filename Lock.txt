@@ -72,7 +72,7 @@ unique_lock 이라는 것이 있는데 이 유니크 락은 직접적으로 우�
 
 std::unique_lock<mutex> uniqueLock(m, std::defer_lock);
 
-이렇게 내가 사용하려는 mutex변수 m 뒤에 std::defer_lock을 적어주면 이후에 lock 시점은 내가 직접 정할 수 있다.
+이렇게 내가 사용하려는 mutex변수 m 뒤에 std::defer_lock을 적어주면 이후에 lock 시점을 내가 직접 정할 수 있다.
 
 
 
