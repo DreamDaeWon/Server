@@ -1,0 +1,74 @@
+-- DeadLock --
+데드락이란 락을 기다리다가 계속 기다리게 되는 상황을 말한다.
+데드락은 다양한 경우에 일어날 수 있다.
+lock()만 하고서 unlock()를 해주지 않아 일어날 때도 있다.
+그럴때는 락가드나 유니크락 등등을 이용해서 가드를 해주면 된다.
+
+그러나 락가드를 사용하더라도
+
+2개의 Lock를 같이 사용하게 된다면
+
+예를들어
+
+  void Thread_1()
+  {
+    for(int i = 0; i<10000; ++i)
+    {
+      lock_guard<mutex> lg_1(m1);
+      lock_guard<mutex> lg_2(m2);
+    }
+  }
+
+  void Thread_2()
+  {
+   for(int i = 0; i<10000; ++i)
+    {
+      lock_guard<mutex> lg_2(m2);
+      lock_guard<mutex> lg_1(m1);
+    }
+  }
+
+int main()
+{
+  thread t1(Thread_1);
+  thread t2(Thread_2);
+
+  t1.join();
+  t2.join();
+
+  cout << "동작 끝!" << endl;
+}
+
+이렇게 코드를 짜게 된다면 동작 끝! 이라는 문장은 나오지 않게된다.
+왜냐면 
+
+  void Thread_1()
+  {
+    for(int i = 0; i<10000; ++i)
+    {
+      lock_guard<mutex> lg_1(m1);
+      lock_guard<mutex> lg_2(m2); // m1 이 끝나고 Thread_2()에서 아직 lg_2가 unlock를 안했기 때문에 아직 lock할 수 없어서 대기 중
+    }
+  }
+
+  void Thread_2()
+  {
+   for(int i = 0; i<10000; ++i)
+    {
+      lock_guard<mutex> lg_2(m2);
+      lock_guard<mutex> lg_1(m1); // m2 가 끝나고 Thread_1()에서 아직 lg_1이 unlock를 안했기 때문에 아직 lock할 수 없어서 대기 중
+    }
+  }
+
+위 주석에 적어 둔 문제들 때문에 무한 대기를 하는 상태인 락데드가 발생하게 된다.
+
+해결법은 순서를 두 함수 모두 같게 만들어주면 해결되지만, 우리가 항상 모든 락을 같은 순서로 만들 수는 없을것이다.
+
+
+그래서 락을 그래프 알고리즘처럼 만들면 괜찮다고 한다. 사이클이 만들어졌는지 런타임에 검사하는 방식이 있다고 한다.(이건 추후에 좀 더 알아보자)
+
+
+
+
+
+  
