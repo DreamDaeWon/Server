@@ -1,0 +1,4 @@
+﻿  pch.cpp
+  Server.cpp
+ServerCore.lib(pch.obj) : warning LNK4099: '' PDB를 'ServerCore.lib(pch.obj)' 또는 ''에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+  Server.vcxproj -> D:\코딩\4-1) 프로젝트 설정\Server\Binaries\x64\Server.exe
